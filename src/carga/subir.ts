@@ -25,3 +25,9 @@ export function cuandoTxt(iso: string): string {
   h = h % 12 || 12;
   return u.getUTCDate() + ' ' + MES[u.getUTCMonth()] + ', ' + h + ':' + String(u.getUTCMinutes()).padStart(2, '0') + ' ' + ap;
 }
+
+/** Huella del contenido (SHA-256 en hexadecimal): dos archivos idénticos tienen la misma, aunque se llamen distinto. */
+export async function huella(data: ArrayBuffer): Promise<string> {
+  const h = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}

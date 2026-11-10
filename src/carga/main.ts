@@ -8,7 +8,7 @@ import './carga.css';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { crearCliente, iniciarSesion, quitarPantalla, esc } from '../app/sesion';
 import { aviso } from '../app/ui/avisos';
-import { rutaCruda, esExcel, NOMBRE_TIPO, cuandoTxt } from './subir';
+import { rutaCruda, esExcel, NOMBRE_TIPO, cuandoTxt, huella } from './subir';
 
 interface Carga { id: number; subido: string; archivo: string; tipo: string | null; estado: string; mensaje: string | null }
 
@@ -46,17 +46,27 @@ async function subir(files: File[]) {
   const drop = $('drop');
   drop.classList.add('ocupado');
   let ok = 0;
+  const repetidos: string[] = [], vistas = new Set<string>();
   try {
     for (const f of xs) {
+      aviso('ok', 'Revisando ' + f.name + '…', 60000);
+      // mismo contenido que una carga anterior (o que otro archivo de esta misma selección): no se vuelve a guardar
+      const hu = await huella(await f.arrayBuffer());
+      if (vistas.has(hu)) { repetidos.push(f.name + ' (repetido en esta selección)'); continue; }
+      vistas.add(hu);
+      const prev = await sb.from('cargas_crudas').select('subido').eq('huella', hu).order('id').limit(1);
+      if (prev.error) { aviso('err', f.name + ': no se pudo revisar si ya estaba (' + prev.error.message + ').', 20000); continue; }
+      if (prev.data && prev.data.length) { repetidos.push(f.name + ' (ya se subió el ' + cuandoTxt((prev.data[0] as { subido: string }).subido) + ')'); continue; }
       aviso('ok', 'Subiendo ' + f.name + '…', 60000);
       const ruta = rutaCruda(f.name, new Date());
       const up = await sb.storage.from('crudos').upload(ruta, f, { contentType: f.type || 'application/octet-stream', upsert: false });
       if (up.error) { aviso('err', f.name + ': no se pudo subir (' + up.error.message + ').', 20000); continue; }
-      const ins = await sb.from('cargas_crudas').insert({ archivo: f.name, ruta, tamano: f.size });
+      const ins = await sb.from('cargas_crudas').insert({ archivo: f.name, ruta, tamano: f.size, huella: hu });
       if (ins.error) { aviso('err', f.name + ': se subió, pero no se pudo anotar (' + ins.error.message + ').', 20000); continue; }
       ok++;
     }
-    if (ok) aviso('ok', ok + (ok === 1 ? ' archivo subido' : ' archivos subidos') + '. El pipeline los procesa en un momento.', 10000);
+    if (repetidos.length) aviso(ok ? 'ok' : 'err', (ok ? ok + (ok === 1 ? ' archivo subido. ' : ' archivos subidos. ') : '') + 'No se volvió a guardar: ' + repetidos.join(' · '), 20000);
+    else if (ok) aviso('ok', ok + (ok === 1 ? ' archivo subido' : ' archivos subidos') + '. El pipeline los procesa en un momento.', 10000);
   } finally {
     drop.classList.remove('ocupado');
     ($('fileInput') as HTMLInputElement).value = '';
