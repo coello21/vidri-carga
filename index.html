@@ -24,8 +24,9 @@
   <section class="chart full">
     <div class="cardhead"><div><h3>Subir archivos</h3><p class="cardsub">Los Excel se guardan tal como salen del sistema; el pipeline los limpia y los pasa a los tableros.</p></div></div>
     <label class="cg-drop" id="drop" for="fileInput">
-      <b>Arrastra aquí los Excel del sistema</b>
-      <span>o da clic para elegirlos</span>
+      <span class="cg-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg></span>
+      <span class="cg-tx"><b>Arrastra aquí los Excel</b> · Productividad y Pedidos CD, juntos o por separado</span>
+      <span class="cg-btn">Elegir archivos</span>
       <input type="file" hidden id="fileInput" accept=".xlsx,.xls" multiple>
     </label>
     <p class="cg-nota">Por ahora el pipeline procesa <b>Productividad</b> (rpt_ListaPreparacionAuditoria) y <b>Pedidos CD</b> (Document). El Rpt_OrdenesPreparacion se sigue cargando en el Radar.</p>
