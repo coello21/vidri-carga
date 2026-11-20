@@ -14,6 +14,8 @@ export const NOMBRE_TIPO: Record<string, string> = {
   ordenes: 'Órdenes de preparación',
   pedidos: 'Pedidos CD',
   inconsistencias: 'Inconsistencias',
+  pendientes: 'Preparaciones pendientes',
+  egresos: 'Egresos (despacho)',
 };
 
 /** Fecha y hora corta en hora de El Salvador: "10 nov, 9:42 a. m." */
